@@ -1,0 +1,96 @@
+- hosts: all
+  remote_user: root
+  gather_facts: false
+  tasks:
+    - name: "copy file to remote server"
+      copy:
+        src: "/var/root/install_packages/env"
+        dest: "/root/.cargo"
+        owner: root
+        group: root
+        mode: 755
+
+- hosts: all
+  tasks:
+    - name: install packages
+      become: true
+      become_user: root
+      action: >
+       {{ ansible_pkg_mgr }} name=htop,transmission state=present update_cache=yes
+
+    - name: Run update curl htop
+      ansible.builtin.shell:
+        cmd: sudo apt install curl htop  -y
+
+    - name: Run install cmake libncurses5-dev libncursesw5-dev git -y
+      ansible.builtin.shell:
+        cmd: sudo apt install cmake libncurses5-dev libncursesw5-dev git -y
+
+    - name: Run git clone https://github.com/Syllo/nvtop.git
+      ansible.builtin.shell:
+        cmd: cd ~  && rm -rf nvtop && git clone https://github.com/Syllo/nvtop.git
+
+    - name: Run mkdir -p nvtop/build && cd nvtop/build && cmake .. -DNVML_RETRIEVE_HEADER_ONLINE=True  && sudo make install
+      ansible.builtin.shell:
+        cmd: mkdir -p nvtop/build && cd nvtop/build && cmake .. -DNVML_RETRIEVE_HEADER_ONLINE=True  && sudo make install
+
+    - name: Run update
+      ansible.builtin.shell:
+        cmd: sudo apt update
+
+    - name: Run install mesa-opencl-icd ocl-icd-opencl-dev gcc git bzr jq pkg-config curl clang build-essential hwloc libhwloc-dev wget -y && sudo apt upgrade
+      ansible.builtin.shell:
+        cmd: sudo apt install mesa-opencl-icd ocl-icd-opencl-dev gcc git bzr jq pkg-config curl clang build-essential hwloc libhwloc-dev wget -y && sudo apt upgrade -y
+
+    - name: Run install mesa-opencl-icd ocl-icd-opencl-dev
+      ansible.builtin.shell:
+        cmd: sudo apt install mesa-opencl-icd ocl-icd-opencl-dev -y
+
+    - name: Run add-apt-repository ppa:longsleep/golang-backports
+      ansible.builtin.shell:
+        cmd: sudo add-apt-repository ppa:longsleep/golang-backports -y
+
+    - name: Run update
+      ansible.builtin.shell:
+        cmd: sudo apt update -y
+
+    - name: Run install golang-go gcc git bzr jq pkg-config mesa-opencl-icd ocl-icd-opencl-dev
+      ansible.builtin.shell:
+        cmd: sudo apt install golang-go gcc git bzr jq pkg-config mesa-opencl-icd ocl-icd-opencl-dev -y
+
+    - name: Download rustup
+      ansible.builtin.get_url:
+        url: https://sh.rustup.rs
+        dest: /root/rustup.sh
+
+    - name: Download/Run golang
+      ansible.builtin.shell:
+        cmd: wget -c https://golang.org/dl/go1.16.4.linux-amd64.tar.gz -O - | sudo tar -xz -C /usr/local
+
+    - name: Run update
+      ansible.builtin.shell:
+        cmd: sudo apt update -y
+
+    # - name: Run source $HOME/.cargo/env rustup
+    #   ansible.builtin.shell:
+    #     cmd: source $HOME/.cargo/env && rustup
+
+    - name: Run git clone https://github.com/filecoin-project/lotus.git
+      ansible.builtin.shell:
+        cmd: cd ~ && rm -rf lotus && git clone https://github.com/filecoin-project/lotus.git
+
+    # - name: Run make lotus
+    #   ansible.builtin.shell:
+    #     cmd: cd ~/lotus/ && RUSTFLAGS="-C target-cpu=native -g" FFI_BUILD_FROM_SOURCE=1 && . $HOME/.cargo/env && make clean deps && make all
+
+    # - name: Run install lotus
+    #   ansible.builtin.shell:
+    #     cmd: cd ~/lotus/ && RUSTFLAGS="-C target-cpu=native -g" FFI_BUILD_FROM_SOURCE=1 && sudo make install
+    
+    - name: Run clean all 
+      ansible.builtin.shell:
+        cmd: RUSTFLAGS="-C target-cpu=native -g"  FFI_BUILD_FROM_SOURCE=1  PATH=$PATH:/usr/local/go/bin && cd ~/lotus/ && make clean all 
+
+    - name: Run make install
+      ansible.builtin.shell:
+        cmd: RUSTFLAGS="-C target-cpu=native -g"  FFI_BUILD_FROM_SOURCE=1  PATH=$PATH:/usr/local/go/bin && cd ~/lotus/ && make install
