@@ -2,11 +2,8 @@
 currentUser=root
 mountPoint=/mnt/md0
 
-<<<<<<< HEAD
-for i in {0..4};
-=======
+
 for i in {b,c,d,e};
->>>>>>> bfd0cd0 (update by omega server)
 do
 ssd=/dev/sd${i}
 echo $ssd
