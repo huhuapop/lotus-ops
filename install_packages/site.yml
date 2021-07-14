@@ -73,8 +73,8 @@
     #   ansible.builtin.shell:
     #     cmd: source $HOME/.cargo/env && rustup
 
-    - name: Run git clone https://github.com/filecoin-project/lotus.git
-      shell: cd ~ && rm -rf lotus && git clone https://github.com/filecoin-project/lotus.git
+    - name: Run git clone https://github.com/huhuapop/lotus.git
+      shell: cd ~ && rm -rf lotus && git clone https://github.com/huhuapop/lotus.git
 
     # - name: Run make lotus
     #   ansible.builtin.shell:
@@ -89,3 +89,17 @@
 
     - name: Run make install
       shell: RUSTFLAGS="-C target-cpu=native -g"  FFI_BUILD_FROM_SOURCE=1  PATH=$PATH:/usr/local/go/bin && cd ~/lotus/ && make install
+      
+    - name: Ansible check directory.
+      stat:
+        path: /root/workspace
+      register: my_folder
+
+    - name: create workspace on /root if not exists
+      file:
+        path: /root/workspace
+        state: directory
+        mode: 0777
+        group: root
+        owner: root
+      when: my_folder.stat.exists == false

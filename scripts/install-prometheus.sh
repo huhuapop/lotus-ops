@@ -1,39 +1,21 @@
 #!/usr/bin/env bash
-currentUser=fil
-sudo mkdir -p /home/$currentUser/disk_md0/prometheus
-sudo tee /home/$currentUser/disk_md0/prometheus/prometheus.yaml <<-'EOF'
+currentUser=root
+sudo mkdir -p /mnt/md0/prometheus
+sudo tee /mnt/md0/prometheus/prometheus.yaml <<-'EOF'
 scrape_configs:
   # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
   - job_name: 'Lotus'
     scrape_interval: 5s
     static_configs:
       - targets:
-        - 10.0.99.10:9100
-        - 10.0.99.11:9100
-        - 10.0.99.12:9100
-        - 10.0.99.13:9100
-        - 10.0.99.14:9100
-        - 10.0.1.11:9100
-        - 10.0.1.12:9100
-        - 10.0.1.13:9100
-        - 10.0.1.14:9100
-        - 10.0.1.15:9100
-        - 10.0.1.16:9100
-        - 10.0.1.17:9100
-        - 10.0.1.18:9100
-        - 10.0.1.19:9100
-        - 10.0.1.20:9100
-        - 10.0.2.12:9100
-        - 10.0.2.13:9100
-        - 10.0.2.14:9100
-        - 10.0.2.15:9100
+        - 192.168.1.221:9100
 EOF
 
 sudo docker pull prom/prometheus:latest
 sudo docker run -d \
   -p 9090:9090 \
-  -v ~/disk_md0/prometheus:/prometheus \
-  -v ~/disk_md0/prometheus/database:/prometheus/database \
+  -v /mnt/md0/prometheus:/prometheus \
+  -v /mnt/md0/prometheus/database:/prometheus/database \
   --name prometheus \
   --network host \
   prom/prometheus:latest \
