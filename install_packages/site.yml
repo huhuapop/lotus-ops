@@ -1,14 +1,14 @@
-- hosts: all
-  remote_user: root
-  gather_facts: false
-  tasks:
-    - name: "copy file to remote server"
-      copy:
-        src: "/home/omega/lotus-ops/install_packages/env"
-        dest: "/root/.cargo"
-        owner: root
-        group: root
-        mode: 755
+# - hosts: all
+#   remote_user: root
+#   gather_facts: false
+#   tasks:
+#     - name: "copy file to remote server"
+#       copy:
+#         src: "/home/omega/lotus-ops/install_packages/env"
+#         dest: "/root/.cargo"
+#         owner: root
+#         group: root
+#         mode: 777
 
 - hosts: all
   tasks:
@@ -17,41 +17,105 @@
       become_user: root
       action: >
        {{ ansible_pkg_mgr }} name=htop,transmission state=present update_cache=yes
+      ignore_errors: yes 
+
+    - name: Ansible check directory.
+      stat:
+        path: /root/workspace
+      register: my_folder
+      ignore_errors: yes 
+
+    - name: create workspace on /root if not exists
+      file:
+        path: /root/workspace
+        state: directory
+        mode: 0777
+        group: root
+        owner: root
+      when: my_folder.stat.exists == false
+      ignore_errors: yes 
+
+    - name: Ansible check directory /mnt/md0/proof_params.
+      stat:
+        path: /mnt/md0/proof_params
+      register: proof_params_folder
+      ignore_errors: yes 
+
+    - name: create proof_params on /mnt/md0 if not exists
+      file:
+        path:  /mnt/md0/proof_params
+        state: directory
+        mode: 0777
+        group: root
+        owner: root
+      when: proof_params_folder.stat.exists == false
+      ignore_errors: yes 
+
+    - name: Ansible check directory /mnt/md0/tmp.
+      stat:
+        path: /mnt/md0/tmp
+      register: tmp_folder
+      ignore_errors: yes 
+
+    - name: create tmp on /mnt/md0 if not exists
+      file:
+        path:  /mnt/md0/tmp
+        state: directory
+        mode: 0777
+        group: root
+        owner: root
+      when: tmp_folder.stat.exists == false
+      ignore_errors: yes 
 
     - name: Run update ntpdate
       shell: sudo apt install ntpdate  -y
+      ignore_errors: yes 
 
-    - name: Run update curl htop
+    - name: Run update curl htop make pkg-config mesa-opencl-icd ocl-icd-opencl-dev libclang-dev libhwloc-dev hwloc gcc git bzr jq tree openssh-server python3 cpufrequtils
       become: true
       become_user: root
-      shell: sudo apt install curl htop  -y
+      shell: sudo apt install curl htop make pkg-config mesa-opencl-icd ocl-icd-opencl-dev libclang-dev libhwloc-dev hwloc gcc git bzr jq tree openssh-server python3 cpufrequtils  -y
+      ignore_errors: yes 
 
     - name: Run install cmake libncurses5-dev libncursesw5-dev git -y
       shell: sudo apt install cmake libncurses5-dev libncursesw5-dev git -y
+      ignore_errors: yes 
 
     - name: Run git clone https://github.com/Syllo/nvtop.git
       shell: cd ~  && rm -rf nvtop && git clone https://github.com/Syllo/nvtop.git
+      ignore_errors: yes 
 
     - name: Run mkdir -p nvtop/build && cd nvtop/build && cmake .. -DNVML_RETRIEVE_HEADER_ONLINE=True  && sudo make install
       shell: mkdir -p nvtop/build && cd nvtop/build && cmake .. -DNVML_RETRIEVE_HEADER_ONLINE=True  && sudo make install
+      ignore_errors: yes 
 
-    - name: Run update
-      shell: sudo apt update
+    # - name: Run update
+    #   shell: sudo apt update -y
+    #   ignore_errors: yes 
+
+    # - name: Run upgrade 
+    #   shell: sudo apt upgrade  -y
+    #   ignore_errors: yes 
 
     - name: Run install mesa-opencl-icd ocl-icd-opencl-dev gcc git bzr jq pkg-config curl clang build-essential hwloc libhwloc-dev wget -y && sudo apt upgrade
       shell: sudo apt install mesa-opencl-icd ocl-icd-opencl-dev gcc git bzr jq pkg-config curl clang build-essential hwloc libhwloc-dev wget -y && sudo apt upgrade -y
+      ignore_errors: yes 
 
     - name: Run install mesa-opencl-icd ocl-icd-opencl-dev
       shell: sudo apt install mesa-opencl-icd ocl-icd-opencl-dev -y
+      ignore_errors: yes 
 
     - name: Run add-apt-repository ppa:longsleep/golang-backports
       shell: sudo add-apt-repository ppa:longsleep/golang-backports -y
+      ignore_errors: yes 
 
     - name: Run update
       shell: sudo apt update -y
+      ignore_errors: yes 
 
     - name: Run install golang-go gcc git bzr jq pkg-config mesa-opencl-icd ocl-icd-opencl-dev
       shell: sudo apt install golang-go gcc git bzr jq pkg-config mesa-opencl-icd ocl-icd-opencl-dev -y
+      ignore_errors: yes 
 
     # - name: Download rustup
     #   ansible.builtin.get_url:
@@ -62,44 +126,111 @@
         url: https://sh.rustup.rs
         dest: /root/rustup.sh
         mode: 700
+      ignore_errors: yes 
 
     - name: Download/Run golang
       shell: wget -c https://golang.org/dl/go1.16.4.linux-amd64.tar.gz -O - | sudo tar -xz -C /usr/local
+      ignore_errors: yes 
 
-    - name: Run update
-      shell: sudo apt update -y
+    # - name: Run update
+    #   shell: sudo apt update -y
+    #   ignore_errors: yes 
 
-    # - name: Run source $HOME/.cargo/env rustup
-    #   ansible.builtin.shell:
-    #     cmd: source $HOME/.cargo/env && rustup
+    # # - name: Run source $HOME/.cargo/env rustup
+    # #   ansible.builtin.shell:
+    # #     cmd: source $HOME/.cargo/env && rustup
 
-    - name: Run git clone https://github.com/huhuapop/lotus.git
-      shell: cd ~ && rm -rf lotus && git clone https://github.com/huhuapop/lotus.git
+    # - name: Run git clone https://github.com/huhuapop/lotus.git
+    #   shell: cd ~ && rm -rf lotus && git clone https://github.com/huhuapop/lotus.git
+    #   ignore_errors: yes 
 
-    # - name: Run make lotus
-    #   ansible.builtin.shell:
-    #     cmd: cd ~/lotus/ && RUSTFLAGS="-C target-cpu=native -g" FFI_BUILD_FROM_SOURCE=1 && . $HOME/.cargo/env && make clean deps && make all
+    # # - name: Run make lotus
+    # #   ansible.builtin.shell:
+    # #     cmd: cd ~/lotus/ && RUSTFLAGS="-C target-cpu=native -g" FFI_BUILD_FROM_SOURCE=1 && . $HOME/.cargo/env && make clean deps && make all
 
-    # - name: Run install lotus
-    #   ansible.builtin.shell:
-    #     cmd: cd ~/lotus/ && RUSTFLAGS="-C target-cpu=native -g" FFI_BUILD_FROM_SOURCE=1 && sudo make install
+    # # - name: Run install lotus
+    # #   ansible.builtin.shell:
+    # #     cmd: cd ~/lotus/ && RUSTFLAGS="-C target-cpu=native -g" FFI_BUILD_FROM_SOURCE=1 && sudo make install
     
-    - name: Run clean all 
-      shell: RUSTFLAGS="-C target-cpu=native -g"  FFI_BUILD_FROM_SOURCE=1  PATH=$PATH:/usr/local/go/bin && cd ~/lotus/ && make clean all 
+    # - name: Run clean all 
+    #   shell: RUSTFLAGS="-C target-cpu=native -g"  FFI_BUILD_FROM_SOURCE=1  PATH=$PATH:/usr/local/go/bin && cd ~/lotus/ && make clean all 
+    #   ignore_errors: yes 
 
     - name: Run make install
-      shell: RUSTFLAGS="-C target-cpu=native -g"  FFI_BUILD_FROM_SOURCE=1  PATH=$PATH:/usr/local/go/bin && cd ~/lotus/ && make install
-      
-    - name: Ansible check directory.
-      stat:
-        path: /root/workspace
-      register: my_folder
+      shell: RUSTFLAGS="-C target-cpu=native -g"  FFI_BUILD_FROM_SOURCE=1  PATH=$PATH:/usr/local/go/bin && cd ~/lotus/ && make install && make lotus-bench && make lotus-shed
+      ignore_errors: yes 
 
-    - name: create workspace on /root if not exists
-      file:
-        path: /root/workspace
-        state: directory
-        mode: 0777
-        group: root
-        owner: root
-      when: my_folder.stat.exists == false
+    - name: Install Nvidia
+      shell: sudo apt install nvidia-driver-460-server -y 
+      ignore_errors: yes 
+
+    - name: Install glances
+      shell: sudo apt-get install glances -y
+      ignore_errors: yes 
+
+    - name: Install screen
+      shell: sudo apt-get install screen -y
+      ignore_errors: yes 
+
+    - name: Install mdadm
+      shell: sudo apt-get install mdadm -y
+      ignore_errors: yes 
+
+    - name: Install sysfsutils
+      shell: sudo apt-get install sysfsutils -y
+      ignore_errors: yes 
+
+    - name: Install cockpit
+      shell:  sudo apt-get install cockpit -y
+      ignore_errors: yes 
+
+    # - name: Add specified repository into sources list
+    #   ansible.builtin.apt_repository:
+    #     repo: deb http://download.webmin.com/download/repository sarge contrib
+    #     state: present
+
+    # - apt:
+    #     update_cache: no
+
+    - apt_repository:
+        repo: deb http://download.webmin.com/download/repository sarge contrib
+        state: present
+        ignore_errors: yes 
+        # update_cache: no
+
+    - name: add jcameron-key
+      shell: cd /root && sudo wget http://www.webmin.com/jcameron-key.asc && sudo apt-key add jcameron-key.asc
+      ignore_errors: yes 
+
+    - name: Install apt-transport-https
+      shell: sudo apt-get install apt-transport-https -y
+      ignore_errors: yes 
+
+    # - name: Run update
+    #   shell: sudo apt update -y
+    #   ignore_errors: yes 
+
+    - name: Install webmin
+      shell: sudo apt install webmin -y
+      ignore_errors: yes 
+
+    - name:  永久修改 ulimit 1
+      shell: echo 'fs.file-max = 1048576' | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
+      ignore_errors: yes 
+
+    # - name:  永久修改 ulimit 2
+    #   shell: |
+    #         sudo tee -a /etc/security/limits.conf << EOF
+    #           *               hard    nofile          1048576
+    #           *               soft    nofile          1048576
+    #           root            hard    nofile          1048576
+    #           root            soft    nofile          1048576
+    #           EOF
+
+    - name:  永久修改 ulimit 3
+      shell: sudo sed -i '/DefaultLimitNOFILE/c DefaultLimitNOFILE=1048576' /etc/systemd/*.conf && sudo systemctl daemon-reexec
+      ignore_errors: yes 
+
+    - name:  永久修改 ulimit 4
+      shell: echo 'net.core.somaxconn=65535' | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
+      ignore_errors: yes 
